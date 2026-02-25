@@ -1,0 +1,75 @@
+import joblib
+import pandas as pd
+import sys
+
+def cargar_modelo(ruta_modelo):
+    """Carga el modelo serializado de joblib."""
+    try:
+        modelo = joblib.load(ruta_modelo)
+        print("¡Modelo cargado exitosamente!\n")
+        return modelo
+    except FileNotFoundError:
+        print(f"Error: No se encontró el archivo '{ruta_modelo}'.")
+        print("Asegúrate de ejecutar primero el script de entrenamiento para generarlo.")
+        sys.exit(1)
+
+#Inferencias del modelo a travez de consola 
+def main():
+    print("="*60)
+    print("   Predictor de Categoría de Precio de Bitcoin (Consola)   ")
+    print("="*60)
+    print("Escribe 'salir' en cualquier momento para cerrar el programa.\n")
+
+    # Cargar el pipeline que contiene el escalador y el Random Forest
+    modelo = cargar_modelo('bitcoin_model.joblib')
+
+    while True:
+        try:
+            # 1. Solicitar los datos al usuario
+            print("-" * 30)
+            entrada_open = input("1. Precio de Apertura (Open): ")
+            if entrada_open.lower() == 'salir': break
+            
+            entrada_high = input("2. Precio Máximo (High): ")
+            if entrada_high.lower() == 'salir': break
+            
+            entrada_low = input("3. Precio Mínimo (Low): ")
+            if entrada_low.lower() == 'salir': break
+            
+            entrada_close = input("4. Precio de Cierre (Close): ")
+            if entrada_close.lower() == 'salir': break
+            
+            entrada_vol = input("5. Volumen (Volume): ")
+            if entrada_vol.lower() == 'salir': break
+
+            # 2. Convertir las entradas a números flotantes
+            open_val = float(entrada_open)
+            high_val = float(entrada_high)
+            low_val = float(entrada_low)
+            close_val = float(entrada_close)
+            vol_val = float(entrada_vol)
+
+            # 3. Formatear los datos exactamente como el modelo los espera
+            # Usamos un DataFrame con los mismos nombres de columnas que en el entrenamiento
+            datos_nuevos = pd.DataFrame(
+                [[open_val, high_val, low_val, close_val, vol_val]], 
+                columns=['Open', 'High', 'Low', 'Close', 'Volume']
+            )
+
+            # 4. Realizar la predicción
+            prediccion = modelo.predict(datos_nuevos)
+
+            # 5. Mostrar el resultado
+            print("\n" + "="*40)
+            print(f" ➔ La categoría predicha es: {prediccion[0]}")
+            print("="*40 + "\n")
+
+        except ValueError:
+            print("\n[!] Error: Ingresaste un valor no válido. Por favor, introduce solo números.\n")
+        except Exception as e:
+            print(f"\n[!] Ocurrió un error inesperado: {e}\n")
+
+    print("\nPrograma terminado. ¡Hasta luego!")
+
+if __name__ == "__main__":
+    main()
